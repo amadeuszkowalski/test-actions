@@ -52,12 +52,20 @@ jobs:
         pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
         dotnet build --configuration Release --output ./output
         popd
+    - uses: actions/upload-artifact@v2
+      with:
+        name: drop
+        path: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
 
   deploy-sol:
     runs-on: windows-latest # For Linux, use ubuntu-latest
     environment: sol
     needs: build
     steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: drop
+    
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
       id: fa
@@ -71,6 +79,10 @@ jobs:
     environment: prod
     needs: build
     steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: drop
+        
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
       id: fa
