@@ -29,9 +29,8 @@ env:
   DOTNET_VERSION: '6.0.x'                   # set this to the dotnet version to use (e.g. '2.1.x', '3.1.x', '5.0.x')
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: windows-latest # For Linux, use ubuntu-latest
-    environment: sol
     steps:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@v3
@@ -54,6 +53,22 @@ jobs:
         dotnet build --configuration Release --output ./output
         popd
 
+  deploy-sol:
+    runs-on: windows-latest # For Linux, use ubuntu-latest
+    environment: sol
+    steps:
+    - name: 'Run Azure Functions Action'
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }} # Remove publish-profile to use Azure RBAC
+        
+  deploy-prod:
+    runs-on: windows-latest # For Linux, use ubuntu-latest
+    environment: prod
+    steps:
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
       id: fa
